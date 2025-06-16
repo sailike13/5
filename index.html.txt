@@ -638,9 +638,10 @@
                     <div class="address-value" id="trc-address">TW2KVehsPiUqLQ8guB9zGsorNJJ9RyrRZB</div>
                     <button class="copy-btn" onclick="copyAddress()">复制地址</button>
                 </div>
-               <div class="qrcode-container">
-    <h3 class="address-title">支付二维码</h3>
-</div>
+                <div class="qrcode-container">
+                    <h3 class="address-title">支付二维码</h3>
+                    <!-- 仅删除这行图片标签：<img src="https://i.ibb.co/9YF9VZ7/your-qrcode.png" alt="TRC链支付二维码" style="width:150px;height:150px;">
+                </div>
             </div>
             <div class="payment-note">
                 <div class="note-title">重要提示</div>
