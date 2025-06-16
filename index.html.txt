@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>英雄会 - 中石化&京东E卡自助发卡</title>
+    <!-- 第三方图标库 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- 谷歌字体 -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Exo+2:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <!-- 二维码生成库（前端备用） -->
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+
+    <style>
+        :root {
+            --primary: #0c1a2d;
+            --secondary: #132842;
+            --accent: #00e6ff;
+            --accent2: #8a2be2;
+            --text: #e6f1ff;
+            --highlight: #ff2a6d;
+            --success: #00ff9f;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--primary) 0%, #07111c 100%);
+            color: var(--text);
+            font-family: 'Exo 2', sans-serif;
+            min-height: 100vh;
+            line-height: 1.6;
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(20, 100, 255, 0.1) 0%, transparent 15%),
+                radial-gradient(circle at 90% 80%, rgba(138, 43, 226, 0.1) 0%, transparent 15%),
+                radial-gradient(circle at 50% 50%, rgba(0, 230, 255, 0.05) 0%, transparent 25%);
+        }
+
+        .container {
+            width: 90%;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* 头部样式 */
+        header {
+            padding: 30px 0;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 40px;
+            border-bottom: 1px solid rgba(0, 230, 255, 0.2);
+        }
+
+        .header-content {
+            position: relative;
+            z-index: 2;
+        }
+
+        h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 3.5rem;
+            font-weight: 900;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, var(--accent), var(--accent2));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 20px rgba(0, 230, 255, 0.3);
+            letter-spacing: 2px;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.5rem;
+            }
+        }
+
+        .subtitle {
+            font-size: 1.5rem;
+            color: rgba(230, 241, 255, 0.8);
+            margin-bottom: 20px;
+            font-weight: 300;
+        }
+
+        /* 卡片样式 */
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 25px;
+            margin-bottom: 50px;
+        }
+
+        .card {
+            background: rgba(19, 40, 66, 0.8);
+            border-radius: 15px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(0, 230, 255, 0.3);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            position: relative;
+        }
+
+        .card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0, 230, 255, 0.2), 0 0 30px rgba(138, 43, 226, 0.3);
+            border-color: var(--accent);
+        }
+
+        .card-header {
+            background: rgba(12, 26, 45, 0.9);
+            padding: 20px;
+            text-align: center;
+            border-bottom: 1px solid rgba(0, 230, 255, 0.2);
+        }
+
+        .card-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            color: var(--accent);
+        }
+
+        .card-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            font-family: 'Orbitron', sans-serif;
+            margin-bottom: 5px;
+            color: var(--text);
+        }
+
+        .card-body {
+            padding: 20px;
+        }
+
+        .denomination {
+            display: flex;
+            justify-content: space-between;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 12px 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            align-items: center;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            border: 1px solid transparent;
+        }
+
+        .denomination:hover {
+            background: rgba(0, 0, 0, 0.5);
+            border-color: var(--accent);
+        }
+
+        .denomination.selected {
+            background: rgba(0, 230, 255, 0.15);
+            border-color: var(--accent);
+            box-shadow: 0 0 15px rgba(0, 230, 255, 0.3);
+        }
+
+        .denom-price {
+            font-weight: 700;
+            font-size: 1.2rem;
+        }
+
+        .denom-discount {
+            color: var(--success);
+            font-size: 0.9rem;
+            background: rgba(0, 255, 159, 0.1);
+            padding: 3px 8px;
+            border-radius: 20px;
+        }
+
+        .denom-stock {
+            font-size: 0.9rem;
+            color: rgba(230, 241, 255, 0.7);
+        }
+
+        .action-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+
+        .btn {
+            padding: 12px 25px;
+            border-radius: 30px;
+            font-weight: 700;
+            font-family: 'Exo 2', sans-serif;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            outline: none;
+            border: none;
+            width: 48%;
+        }
+
+        .btn-primary {
+            background: linear-gradient(90deg, var(--accent), var(--accent2));
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(0, 230, 255, 0.5);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--accent);
+            border: 2px solid var(--accent);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(0, 230, 255, 0.1);
+            transform: scale(1.05);
+        }
+
+        /* 结算弹窗 */
+        .checkout-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .checkout-container {
+            background: rgba(19, 40, 66, 0.95);
+            border-radius: 15px;
+            padding: 30px;
+            width: 90%;
+            max-width: 600px;
+            border: 1px solid var(--accent);
+            box-shadow: 0 0 50px rgba(0, 230, 255, 0.3);
+            position: relative;
+        }
+
+        .close-checkout {
+            background: transparent;
+            border: none;
+            color: var(--text);
+            font-size: 1.5rem;
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            cursor: pointer;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--accent);
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(0, 230, 255, 0.3);
+            color: var(--text);
+            font-size: 1rem;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 10px rgba(0, 230, 255, 0.3);
+        }
+
+        .order-summary {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        /* 支付信息区 */
+        .payment-section {
+            background: rgba(19, 40, 66, 0.8);
+            border-radius: 15px;
+            padding: 30px;
+            margin-top: 40px;
+            border: 1px solid rgba(0, 230, 255, 0.3);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .section-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2.2rem;
+            margin-bottom: 25px;
+            text-align: center;
+            color: var(--accent);
+            position: relative;
+        }
+
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 150px;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, var(--accent), transparent);
+        }
+
+        .payment-info {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+            margin-top: 20px;
+        }
+
+        .wallet-address {
+            flex: 1;
+            min-width: 300px;
+            background: rgba(12, 26, 45, 0.7);
+            padding: 20px;
+            border-radius: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .wallet-address::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, var(--accent), var(--accent2));
+        }
+
+        .address-title {
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            color: var(--accent);
+        }
+
+        .address-value {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 8px;
+            font-family: monospace;
+            word-break: break-all;
+            margin-bottom: 15px;
+            border: 1px solid rgba(0, 230, 255, 0.2);
+            position: relative;
+        }
+
+        .copy-btn {
+            background: linear-gradient(90deg, var(--accent2), #5a1fb6);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+
+        .copy-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(138, 43, 226, 0.4);
+        }
+
+        .qrcode-container {
+            flex: 0 0 200px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: rgba(12, 26, 45, 0.7);
+            padding: 20px;
+            border-radius: 10px;
+            position: relative;
+        }
+
+        .qrcode-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, var(--accent), var(--highlight));
+        }
+
+        .payment-note {
+            margin-top: 25px;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            border-left: 4px solid var(--success);
+        }
+
+        .note-title {
+            color: var(--success);
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        /* 动画 */
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-15px); }
+            100% { transform: translateY(0px); }
+        }
+
+        @keyframes glitch {
+            0% { transform: translateX(0); }
+            10% { transform: translateX(-2px); }
+            20% { transform: translateX(2px); }
+            30% { transform: translateX(-2px); }
+            40% { transform: translateX(2px); }
+            50% { transform: translateX(-2px); }
+            60% { transform: translateX(2px); }
+            70% { transform: translateX(-2px); }
+            80% { transform: translateX(2px); }
+            90% { transform: translateX(-2px); }
+            100% { transform: translateX(0); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 头部 -->
+        <header>
+            <div class="header-content">
+                <h1>英雄会 · 自助发卡平台</h1>
+                <p class="subtitle">京东E卡 | 中石化油卡 极速秒发</p>
+            </div>
+        </header>
+
+        <!-- 商品卡片网格 -->
+        <div class="card-grid">
+            <!-- 京东E卡卡片 -->
+            <div class="card">
+                <div class="card-header">
+                    <i class="card-icon fa-solid fa-gift"></i>
+                    <h2 class="card-title">京东E卡</h2>
+                </div>
+                <div class="card-body">
+                    <!-- 100元面额 -->
+                    <div class="denomination" 
+                         data-type="jd" 
+                         data-denom="100" 
+                         data-discount="0.65"
+                         onclick="selectDenom(this)">
+                        <div>
+                            <span class="denom-price">100元</span>
+                            <span class="denom-discount">6.5折</span>
+                        </div>
+                        <div class="denom-stock">库存：999+</div>
+                    </div>
+                    <!-- 200元面额 -->
+                    <div class="denomination" 
+                         data-type="jd" 
+                         data-denom="200" 
+                         data-discount="0.65"
+                         onclick="selectDenom(this)">
+                        <div>
+                            <span class="denom-price">200元</span>
+                            <span class="denom-discount">6.5折</span>
+                        </div>
+                        <div class="denom-stock">库存：999+</div>
+                    </div>
+                    <!-- 500元面额 -->
+                    <div class="denomination" 
+                         data-type="jd" 
+                         data-denom="500" 
+                         data-discount="0.65"
+                         onclick="selectDenom(this)">
+                        <div>
+                            <span class="denom-price">500元</span>
+                            <span class="denom-discount">6.5折</span>
+                        </div>
+                        <div class="denom-stock">库存：999+</div>
+                    </div>
+                    <!-- 1000元面额 -->
+                    <div class="denomination" 
+                         data-type="jd" 
+                         data-denom="1000" 
+                         data-discount="0.65"
+                         onclick="selectDenom(this)">
+                        <div>
+                            <span class="denom-price">1000元</span>
+                            <span class="denom-discount">6.5折</span>
+                        </div>
+                        <div class="denom-stock">库存：999+</div>
+                    </div>
+                    <!-- 3000元面额 -->
+                    <div class="denomination" 
+                         data-type="jd" 
+                         data-denom="3000" 
+                         data-discount="0.6"
+                         onclick="selectDenom(this)">
+                        <div>
+                            <span class="denom-price">3000元</span>
+                            <span class="denom-discount">6折</span>
+                        </div>
+                        <div class="denom-stock">库存：999+</div>
+                    </div>
+                    <!-- 5000元面额 -->
+                    <div class="denomination" 
+                         data-type="jd" 
+                         data-denom="5000" 
+                         data-discount="0.6"
+                         onclick="selectDenom(this)">
+                        <div>
+                            <span class="denom-price">5000元</span>
+                            <span class="denom-discount">6折</span>
+                        </div>
+                        <div class="denom-stock">库存：999+</div>
+                    </div>
+
+                    <div class="action-buttons">
+                        <button class="btn btn-primary" onclick="openCheckout()">立即购买</button>
+                        <button class="btn btn-secondary">加入购物车</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 中石化油卡卡片 -->
+            <div class="card">
+                <div class="card-header">
+                    <i class="card-icon fa-solid fa-gas-pump"></i>
+                    <h2 class="card-title">中石化油卡</h2>
+                </div>
+                <div class="card-body">
+                    <!-- 100元面额 -->
+                    <div class="denomination" 
+                         data-type="petrochina" 
+                         data-denom="100" 
+                         data-discount="0.65"
+                         onclick="selectDenom(this)">
+                        <div>
+                            <span class="denom-price">100元</span>
+                            <span class="denom-discount">6.5折</span>
+                        </div>
+                        <div class="denom-stock">库存：999+</div>
+                    </div>
+                    <!-- 200元面额 -->
+                    <div class="denomination" 
+                         data-type="petrochina" 
+                         data-denom="200" 
+                         data-discount="0.65"
+                         onclick="selectDenom(this)">
+                        <div>
+                            <span class="denom-price">200元</span>
+                            <span class="denom-discount">6.5折</span>
+                        </div>
+                        <div class="denom-stock">库存：999+</div>
+                    </div>
+                    <!-- 500元面额 -->
+                    <div class="denomination" 
+                         data-type="petrochina" 
+                         data-denom="500" 
+                         data-discount="0.65"
+                         onclick="selectDenom(this)">
+                        <div>
+                            <span class="denom-price">500元</span>
+                            <span class="denom-discount">6.5折</span>
+                        </div>
+                        <div class="denom-stock">库存：999+</div>
+                    </div>
+                    <!-- 1000元面额 -->
+                    <div class="denomination" 
+                         data-type="petrochina" 
+                         data-denom="1000" 
+                         data-discount="0.65"
+                         onclick="selectDenom(this)">
+                        <div>
+                            <span class="denom-price">1000元</span>
+                            <span class="denom-discount">6.5折</span>
+                        </div>
+                        <div class="denom-stock">库存：999+</div>
+                    </div>
+                    <!-- 3000元面额 -->
+                    <div class="denomination" 
+                         data-type="petrochina" 
+                         data-denom="3000" 
+                         data-discount="0.6"
+                         onclick="selectDenom(this)">
+                        <div>
+                            <span class="denom-price">3000元</span>
+                            <span class="denom-discount">6折</span>
+                        </div>
+                        <div class="denom-stock">库存：999+</div>
+                    </div>
+                    <!-- 5000元面额 -->
+                    <div class="denomination" 
+                         data-type="petrochina" 
+                         data-denom="5000" 
+                         data-discount="0.6"
+                         onclick="selectDenom(this)">
+                        <div>
+                            <span class="denom-price">5000元</span>
+                            <span class="denom-discount">6折</span>
+                        </div>
+                        <div class="denom-stock">库存：999+</div>
+                    </div>
+
+                    <div class="action-buttons">
+                        <button class="btn btn-primary" onclick="openCheckout()">立即购买</button>
+                        <button class="btn btn-secondary">加入购物车</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 支付信息区 -->
+        <div class="payment-section">
+            <h2 class="section-title">支付说明</h2>
+            <div class="payment-info">
+                <div class="wallet-address">
+                    <h3 class="address-title">TRC链USDT收款地址</h3>
+                    <div class="address-value" id="trc-address">TW2KVehsPiUqLQ8guB9zGsorNJJ9RyrRZB</div>
+                    <button class="copy-btn" onclick="copyAddress()">复制地址</button>
+                </div>
+               <div class="qrcode-container">
+    <h3 class="address-title">支付二维码</h3>
+</div>
+            </div>
+            <div class="payment-note">
+                <div class="note-title">重要提示</div>
+                <p>1. 选择商品后，系统自动计算USDT支付金额（汇率7.15）</p>
+                <p>2. 支付完成后，卡密将发送至您填写的邮箱/手机号</p>
+                <p>3. 仅支持TRC链USDT支付，请勿使用其他链</p>
+                <p>4. 支付前请确认订单信息，支付后恕不退款</p>
+            </div>
+        </div>
+
+        <!-- 结账弹窗 -->
+        <div class="checkout-overlay">
+            <div class="checkout-container">
+                <button class="close-checkout" onclick="closeCheckout()">&times;</button>
+                <h2>订单结算</h2>
+                <div class="order-summary">
+                    <div class="summary-item">
+                        <span>商品类型</span>
+                        <span id="checkout-type">-</span>
+                    </div>
+                    <div class="summary-item">
+                        <span>面额（原价）</span>
+                        <span id="checkout-denom">-</span>
+                    </div>
+                    <div class="summary-item">
+                        <span>折扣后金额（CNY）</span>
+                        <span id="checkout-amount-cny">-</span>
+                    </div>
+                    <div class="summary-item">
+                        <span>支付金额（USDT）</span>
+                        <span id="checkout-amount-usdt">-</span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>接收方式</label>
+                    <select id="receipt-method">
+                        <option value="email">邮箱</option>
+                        <option value="phone">手机号码</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>接收账号</label>
+                    <input type="text" class="form-control" id="receipt-account" placeholder="请输入邮箱/手机号">
+                </div>
+                <button class="btn btn-primary" onclick="submitOrder()">确认支付</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 全局变量：记录选中商品信息
+        let selectedType = '';   // 商品类型（jd/petrochina）
+        let selectedDenom = 0;   // 面额（元）
+        let selectedDiscount = 0;// 折扣率
+        let discountAmount = 0;  // 折扣后金额（元）
+        let usdtAmount = 0;      // USDT支付金额
+
+        // 选择面额时的逻辑：标记选中+记录数据
+        function selectDenom(element) {
+            // 移除其他卡片选中状态
+            document.querySelectorAll('.denomination').forEach(item => item.classList.remove('selected'));
+            // 当前卡片标记为选中
+            element.classList.add('selected');
+            
+            // 读取数据属性
+            selectedType = element.getAttribute('data-type');
+            selectedDenom = parseInt(element.getAttribute('data-denom'));
+            selectedDiscount = parseFloat(element.getAttribute('data-discount'));
+            
+            // 计算折扣后金额
+            discountAmount = selectedDenom * selectedDiscount;
+        }
+
+        // 打开结账弹窗：渲染订单信息+计算USDT金额
+        function openCheckout() {
+            if (!selectedType) { // 未选择商品时提示
+                alert('请先选择要购买的商品！');
+                return;
+            }
+
+            // 汇率7.15，计算USDT金额（保留4位小数）
+            usdtAmount = discountAmount / 7.15;
+            usdtAmount = usdtAmount.toFixed(4);
+
+            // 渲染订单信息到弹窗
+            document.getElementById('checkout-type').innerText = selectedType === 'jd' ? '京东E卡' : '中石化油卡';
+            document.getElementById('checkout-denom').innerText = selectedDenom + '元';
+            document.getElementById('checkout-amount-cny').innerText = discountAmount.toFixed(2) + '元';
+            document.getElementById('checkout-amount-usdt').innerText = usdtAmount + ' USDT';
+
+            // 显示弹窗
+            document.querySelector('.checkout-overlay').style.display = 'flex';
+        }
+
+        // 关闭结账弹窗：清空表单
+        function closeCheckout() {
+            document.querySelector('.checkout-overlay').style.display = 'none';
+            document.getElementById('receipt-account').value = '';
+        }
+
+        // 提交订单（前端模拟，实际需对接后端）
+        function submitOrder() {
+            const receiptAccount = document.getElementById('receipt-account').value.trim();
+            if (!receiptAccount) { // 验证接收账号不为空
+                alert('请填写接收账号（邮箱/手机号）！');
+                return;
+            }
+
+            // 模拟提交成功提示
+            alert(`订单提交成功！\n- 商品：${selectedType === 'jd' ? '京东E卡' : '中石化油卡'}\n- 面额：${selectedDenom}元\n- 支付金额：${usdtAmount} USDT\n- 接收账号：${receiptAccount}\n\n请前往支付页面完成TRC链USDT转账，卡密将在支付后发送至您的接收账号。`);
+            closeCheckout(); // 关闭弹窗
+        }
+
+        // 复制TRC收款地址到剪贴板
+        function copyAddress() {
+            const address = document.getElementById('trc-address').innerText;
+            navigator.clipboard.writeText(address)
+                .then(() => alert('地址已复制到剪贴板！'))
+                .catch(err => {
+                    console.error('复制失败：', err);
+                    alert('复制失败，请手动选择地址！');
+                });
+        }
+    </script>
+</body>
+</html>
